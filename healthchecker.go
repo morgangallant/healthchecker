@@ -101,7 +101,7 @@ func run() error {
 			if up && checkErr != nil {
 				// 2nd consecutive fail so we send a message
 				log.Println("Failed 2nd health check, notifying.")
-				msg := fmt.Sprintf("%s is down... might wanna get on that? (XANDERS TEST)", endpoint)
+				msg := fmt.Sprintf("%s is down... might wanna get on that?", endpoint)
 				if err := sendDiscordMessage(msg); err != nil {
 					log.Printf("failed to send discord message: %v", err)
 				}
