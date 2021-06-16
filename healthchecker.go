@@ -93,11 +93,18 @@ func run() error {
 		log.Println("Doing health check.")
 		checkErr := checkUp()
 		if up && checkErr != nil {
-			// The server was previously up, but is now down.
-			log.Println("Failed health check, notifying.")
-			msg := fmt.Sprintf("%s is down... might wanna get on that?", endpoint)
-			if err := sendDiscordMessage(msg); err != nil {
-				log.Printf("failed to send discord message: %v", err)
+			// 1st fail check again in 2 seconds
+			log.Println("First fail")
+			time.Sleep(2 * time.Second)
+			checkErr = checkUp()
+			if up && checkErr != nil {
+				// 2nd fail so we send a message
+				// The server was previously up, but is now down.
+				log.Println("Failed 2nd health check, notifying.")
+				msg := fmt.Sprintf("%s is down... might wanna get on that? (XANDERS TEST)", endpoint)
+				if err := sendDiscordMessage(msg); err != nil {
+					log.Printf("failed to send discord message: %v", err)
+				}
 			}
 		} else if !up && checkErr == nil {
 			// The server was previously down, but is now up.
