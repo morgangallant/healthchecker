@@ -88,23 +88,33 @@ func checkUp() error {
 // The current state of the application.
 var up = true
 
+// Params for retry.
+const (
+	retries    = 3
+	retrySleep = time.Second * 2
+)
+
 func run() error {
 	for {
 		log.Println("Doing health check.")
-		checkErr := checkUp()
+		var checkErr error
+		if !up {
+			checkErr = checkUp()
+		} else {
+			for i := 0; i < retries; i++ {
+				checkErr = checkUp()
+				if checkErr == nil {
+					break
+				}
+				time.Sleep(retrySleep)
+			}
+		}
 		if up && checkErr != nil {
 			// The server was previously up, but is now down.
-			// 1st fail check again in 2 seconds
-			log.Println("First fail")
-			time.Sleep(2 * time.Second)
-			checkErr = checkUp()
-			if up && checkErr != nil {
-				// 2nd consecutive fail so we send a message
-				log.Println("Failed 2nd health check, notifying.")
-				msg := fmt.Sprintf("%s is down... might wanna get on that?", endpoint)
-				if err := sendDiscordMessage(msg); err != nil {
-					log.Printf("failed to send discord message: %v", err)
-				}
+			log.Println("Failed health check, notifying.")
+			msg := fmt.Sprintf("%s is down... might wanna get on that?", endpoint)
+			if err := sendDiscordMessage(msg); err != nil {
+				log.Printf("failed to send discord message: %v", err)
 			}
 		} else if !up && checkErr == nil {
 			// The server was previously down, but is now up.
