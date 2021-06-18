@@ -90,8 +90,8 @@ var up = true
 
 // Params for retry.
 const (
-	retries    = 3
-	retrySleep = time.Second * 2
+	retries    = 5
+	retrySleep = time.Second * 3
 )
 
 func run() error {
